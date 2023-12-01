@@ -5,12 +5,15 @@
 ## Infos
 ##
 
-CFLAGS	= 	-W -Wall -Wextra
-
 SRCLIB	=	lib/my_atoi.c 	\
+			lib/my_inttostr.c	\
+			lib/my_strlen.c \
 
 SRCNAME	=	main.c		\
 			play.c 	\
+			play_2.c	\
+			play_3.c 	\
+			game_over.c	\
 
 
 LIB = libmy.a
@@ -32,7 +35,7 @@ $(NAME) : $(LIB) $(OBJNAME)
 ifeq ($(UNAME),Linux)
 	gcc -o $(NAME) $(SRCNAME) -lmy -L./ $(CSFML) $(CFLAGS)
 else ifeq ($(UNAME),Darwin)
-	gcc -o $(NAME) $(SRCNAME) -lmy -L./ $(CSFML) $(1) $(2) -g3 $(CFLAGS)
+	gcc -o $(NAME) $(SRCNAME) -lmy -L./ $(CSFML) $(1) $(2) -g3
 endif
 
 $(LIB) : $(OBJLIB)

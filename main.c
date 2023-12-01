@@ -26,7 +26,7 @@ void event_close(sfRenderWindow *window, int *p_current)
         if (sfKeyboard_isKeyPressed(sfKeyUp))
             key_up(p_current);
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 0)
-            in_game(window, event, p_current);
+            in_game(window, event, *p_current);
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 1)
             sfRenderWindow_close(window);
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 2)
@@ -46,7 +46,7 @@ static void initial(Sprite_t *image)
     image->scale.y = 0.75;
 }
 
-void set_st(Sprite_t *image, sfSprite **tab_menu)
+void set_st(sfRenderWindow *window, Sprite_t *image, sfSprite **tab_menu)
 {
     sfSprite_setTexture(image->play_s, image->play_t, sfTrue);
     sfSprite_setScale(image->play_s, image->scale);
@@ -57,12 +57,11 @@ void set_st(Sprite_t *image, sfSprite **tab_menu)
     tab_menu[0] = image->play_s;
     tab_menu[1] = image->info_s;
     tab_menu[2] = image->exit_s;
+    sfRenderWindow_setFramerateLimit(window, 60);
 }
 
 static int error_handle(sfRenderWindow *window, Sprite_t *image)
 {
-    if (!window)
-        return 84;
     if (!image->play_t)
         return 84;
     if (!image->info_t)
@@ -83,25 +82,43 @@ void destroy_all(sfRenderWindow *window, Sprite_t *image)
     sfRenderWindow_destroy(window);
 }
 
-int main(void)
+static int my_hunter_h(void)
+{
+    write(1, "--------------------------------------\n", 40);
+    write(1, "|       Bienvenue sur My_Hunter      |\n", 40);
+    write(1, "|------------------------------------|\n", 40);
+    write(1, "|  À vous de faire le meilleur score |\n", 40);
+    write(1, "|     Tuez le maximum de dino !!!    |\n", 40);
+    write(1, "--------------------------------------\n", 40);
+    return 0;
+}
+
+static void sf_render(sfRenderWindow *window, sfSprite *tab_menu[3],
+    int current)
+{
+    sfRenderWindow_clear(window, sfWhite);
+    sfRenderWindow_drawSprite(window, tab_menu[current], NULL);
+    sfRenderWindow_display(window);
+}
+
+int main(int argc, char **argv)
 {
     sfVideoMode mode = {1920, 1080, 32};
     sfRenderWindow *window;
     Sprite_t image;
     sfSprite *tab_menu[3];
     int current = 0;
-    int error;
+    int error = error_handle(window, &image);
 
+    if (argc > 1 && argv[1][0] == '-' && argv[1][1] == 'h')
+        return my_hunter_h();
     initial(&image);
     window = sfRenderWindow_create(mode, "MyHunter", sfResize | sfClose, NULL);
-    set_st(&image, tab_menu);
-    sfRenderWindow_setFramerateLimit(window, 60);
+    set_st(window, &image, tab_menu);
     while (sfRenderWindow_isOpen(window)) {
-        sfRenderWindow_clear(window, sfWhite);
-        sfRenderWindow_drawSprite(window, tab_menu[current], NULL);
-        sfRenderWindow_display(window);
+        sf_render(window, tab_menu, current);
         event_close(window, &current);
     }
     destroy_all(window, &image);
-    return (error == 84 ? 84 : 0);
+    return 0;
 }

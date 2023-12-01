@@ -6,28 +6,66 @@
 */
 #include "include/hunter.h"
 
-void event_close_play(sfRenderWindow *window, sfEvent event)
+void struct_in_game(Game_t *in_game)
 {
-    if (event.type == sfEvtClosed)
-        sfRenderWindow_close(window);
-}
-
-void event_dino(sfRenderWindow *window, sfEvent event)
-{
-    if (event.type == sfEvtClosed)
-        sfRenderWindow_close(window);
-}
-
-static void struct_in_game(Game_t *in_game)
-{
-    in_game->background_t = sfTexture_createFromFile("assets/background.png", NULL);
+    in_game->background_t = sfTexture_createFromFile("assets/fond.png", NULL);
     in_game->background_s = sfSprite_create();
-    in_game->dino_bleu_t = sfTexture_createFromFile("assets/dino_bleu.png", NULL);
+    in_game->dino_bleu_t = sfTexture_createFromFile("assets/dino.png", NULL);
     in_game->dino_bleu_s = sfSprite_create();
     in_game->scale_background.x = 0.75;
     in_game->scale_background.y = 0.75;
     in_game->scale.x = 5;
     in_game->scale.y = 5;
+    in_game->x_dino = -100;
+    in_game->y_dino = 580;
+    in_game->speed = 0;
+    in_game->score = 0;
+    in_game->font = sfFont_createFromFile("assets/daydream.ttf");
+    in_game->text = sfText_create();
+    in_game->nombre = sfText_create();
+    in_game->music = sfMusic_createFromFile("assets/song.ogg");
+    in_game->shoot = sfMusic_createFromFile("assets/shoot.ogg");
+    in_game->life = sfMusic_createFromFile("assets/life.ogg");
+    in_game->game_over = sfMusic_createFromFile("assets/game_over.ogg");
+    in_game->nb_life = 5;
+}
+
+void struct_in_game_heart(Heart_t *heart)
+{
+    heart->heart_5_t = sfTexture_createFromFile("assets/heart_5.png", NULL);
+    heart->heart_5_s = sfSprite_create();
+    heart->heart_4_t = sfTexture_createFromFile("assets/heart_4.png", NULL);
+    heart->heart_4_s = sfSprite_create();
+    heart->heart_3_t = sfTexture_createFromFile("assets/heart_3.png", NULL);
+    heart->heart_3_s = sfSprite_create();
+    heart->heart_2_t = sfTexture_createFromFile("assets/heart_2.png", NULL);
+    heart->heart_2_s = sfSprite_create();
+    heart->heart_1_t = sfTexture_createFromFile("assets/heart_1.png", NULL);
+    heart->heart_1_s = sfSprite_create();
+    heart->aim_t = sfTexture_createFromFile("assets/crosshair.png", NULL);
+    heart->aim_s = sfSprite_create();
+    heart->aim_scale.x = 0.1;
+    heart->aim_scale.y = 0.1;
+}
+
+void event_click(sfRenderWindow *window, sfEvent event, Game_t *in_game)
+{
+    sfVector2i mouse = sfMouse_getPositionRenderWindow(window);
+    sfVector2f mouse2 = sfRenderWindow_mapPixelToCoords(window, mouse, NULL);
+    sfFloatRect dino_shoot = sfSprite_getGlobalBounds(in_game->dino_bleu_s);
+    sfVector2f pos = {in_game->x_dino, in_game->y_dino};
+    sfVector2f new_position = {-100, in_game->y_dino};
+
+    if (event.type == sfEvtClosed)
+        sfRenderWindow_close(window);
+    if (event.type == sfEvtMouseButtonPressed) {
+        if (sfFloatRect_contains(&dino_shoot, mouse2.x, mouse2.y)) {
+            in_game->x_dino = -100;
+            in_game->y_dino = ((rand() % 610) + 0);
+            in_game->score += 25;
+            sfMusic_play(in_game->shoot);
+        }
+    }
 }
 
 sfIntRect move_rect(sfIntRect rect, int offset, int max_value)
@@ -39,58 +77,49 @@ sfIntRect move_rect(sfIntRect rect, int offset, int max_value)
     return rect;
 }
 
+static void destroy_all_play(Game_t *in_game, Heart_t *heart)
+{
+    sfSprite_destroy(in_game->background_s);
+    sfTexture_destroy(in_game->background_t);
+    sfSprite_destroy(in_game->dino_bleu_s);
+    sfTexture_destroy(in_game->dino_bleu_t);
+    sfSprite_destroy(heart->heart_1_s);
+    sfTexture_destroy(heart->heart_1_t);
+    sfSprite_destroy(heart->heart_2_s);
+    sfTexture_destroy(heart->heart_2_t);
+    sfSprite_destroy(heart->heart_3_s);
+    sfTexture_destroy(heart->heart_3_t);
+    sfSprite_destroy(heart->heart_4_s);
+    sfTexture_destroy(heart->heart_4_t);
+    sfSprite_destroy(heart->heart_5_s);
+    sfTexture_destroy(heart->heart_5_t);
+    sfMusic_destroy(in_game->music);
+    sfText_destroy(in_game->text);
+    sfFont_destroy(in_game->font);
+    sfMusic_destroy(in_game->shoot);
+    sfMusic_destroy(in_game->life);
+    sfText_destroy(in_game->nombre);
+}
+
 void in_game(sfRenderWindow *window, sfEvent event, int p_current)
 {
     sfIntRect rect;
     Game_t game;
-    sfClock *clock;
-    sfTime time;
-    float seconds;
-    int x_dino = -100;
-    sfVector2f pos = {x_dino, 580};
+    Heart_t heart;
+    sfClock *clock = sfClock_create();
 
-    struct_in_game(&game);
-    rect.top = 0;
-    rect.left = 0;
-    rect.width = 24;
-    rect.height = 17;
-
-    sfSprite_setTexture(game.dino_bleu_s, game.dino_bleu_t, sfTrue);
-    sfSprite_setTextureRect(game.dino_bleu_s, rect);
-    sfSprite_setScale(game.dino_bleu_s, game.scale);
-    sfSprite_setPosition(game.dino_bleu_s, pos);
-
-    sfSprite_setTexture(game.background_s, game.background_t, sfTrue);
-    sfSprite_setScale(game.background_s, game.scale_background);
-
+    init_game(&game, &heart, &rect);
     while (sfRenderWindow_isOpen(window)) {
-        while (sfRenderWindow_pollEvent(window, &event)) {
-            event_close_play(window, event);
-            event_dino(window, event);
-            if (sfKeyboard_isKeyPressed(sfKeyEscape)) {
-                p_current = 0;
-                return;
-            }
+        if (events_hunter(window, event, &p_current, &game) == 1)
+            return;
+        time_handeling(&game, &rect, clock);
+        dino_life(window, &game, &heart);
+        if (game.nb_life == 0) {
+            sfMusic_destroy(game.music);
+            sfMusic_play(game.game_over);
+            game_over(window, event, &game, p_current);
+            return;
         }
-        time = sfClock_getElapsedTime(clock);
-        seconds = time.microseconds / 1000000.0;
-        if (seconds > 0.03) {
-            rect = move_rect(rect, 24, 144);
-            sfSprite_setTextureRect(game.dino_bleu_s, rect);
-            sfClock_restart(clock);
-        }
-        sfRenderWindow_clear(window, sfWhite);
-        sfRenderWindow_drawSprite(window, game.background_s, NULL);
-        sfRenderWindow_drawSprite(window, game.dino_bleu_s, NULL);
-        sfRenderWindow_display(window);
-        x_dino += 8;
-        sfVector2f pos = {x_dino, 580};
-        if (x_dino >= 1450)
-            x_dino = -100;
-        sfSprite_setPosition(game.dino_bleu_s, pos);
     }
-    sfSprite_destroy(game.background_s);
-    sfTexture_destroy(game.background_t);
-    sfSprite_destroy(game.dino_bleu_s);
-    sfTexture_destroy(game.dino_bleu_t);
+    destroy_all_play(&game, &heart);
 }
