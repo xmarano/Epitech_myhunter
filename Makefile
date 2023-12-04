@@ -13,6 +13,7 @@ SRCNAME	=	main.c		\
 			play.c 	\
 			play_2.c	\
 			play_3.c 	\
+			info.c 	\
 			game_over.c	\
 
 

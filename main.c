@@ -28,7 +28,7 @@ void event_close(sfRenderWindow *window, int *p_current)
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 0)
             in_game(window, event, *p_current);
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 1)
-            sfRenderWindow_close(window);
+            info(window, event);
         if (sfKeyboard_isKeyPressed(sfKeyReturn) && (*p_current) == 2)
             sfRenderWindow_close(window);
     }

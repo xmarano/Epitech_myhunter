@@ -79,4 +79,5 @@ sfIntRect move_rect(sfIntRect rect, int offset, int max_value);
 void struct_in_game_heart(Heart_t *heart);
 void set_texture(Game_t *game, Heart_t *heart, sfIntRect rect);
 void dino_score(sfRenderWindow *window, Game_t *in_game);
+void info(sfRenderWindow *window, sfEvent event);
 #endif
